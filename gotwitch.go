@@ -21,7 +21,7 @@ type TwitchAPI struct {
 type RequestParameters map[string]string
 
 // SuccessCallback runs on a successfull request and parse
-type SuccessCallback func(data interface{})
+type SuccessCallback func()
 
 // HTTPErrorCallback runs on a errored HTTP request
 type HTTPErrorCallback func(statusCode int, statusMessage, errorMessage string)
@@ -37,7 +37,12 @@ func New(clientID string) *TwitchAPI {
 }
 
 // Get can be also used for requests which aren't covered by the library yet
-func (twitchAPI *TwitchAPI) Get(url string, parameters RequestParameters, dataType interface{}, onSuccess SuccessCallback,
+// Exapmle usage:
+//	var user User
+//	api.Get("https://api.twitch.tv/kraken/users/dankeroni", nil, &user, func() {
+//		fmt.Printf("%+v", user)
+//	}, func(a int, b, c string) { fmt.Println(a, b, c) }, func(a error) { fmt.Println(a) })
+func (twitchAPI *TwitchAPI) Get(url string, parameters RequestParameters, data interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	url = url + "?"
 	for _, parameter := range parameters {
@@ -49,23 +54,23 @@ func (twitchAPI *TwitchAPI) Get(url string, parameters RequestParameters, dataTy
 		return
 	}
 
-	handleSuccess(response, dataType, onSuccess, onInternalError)
+	handleSuccess(response, data, onSuccess, onInternalError)
 }
 
-func handleSuccess(response *http.Response, dataType interface{}, onSuccess SuccessCallback, onInternalError InternalErrorCallback) {
+func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessCallback, onInternalError InternalErrorCallback) {
 	body, err := body(response)
 	if err != nil {
 		onInternalError(err)
 		return
 	}
 
-	err = json.Unmarshal(body, &dataType)
+	err = json.Unmarshal(body, &data)
 	if err != nil {
 		onInternalError(err)
 		return
 	}
 
-	onSuccess(dataType)
+	onSuccess()
 }
 
 func handleHTTPError(response *http.Response, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
