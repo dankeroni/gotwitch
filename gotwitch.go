@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -36,11 +37,28 @@ func New(clientID string) *TwitchAPI {
 
 var client = &http.Client{}
 
-// Get can be also used for requests which aren't covered by the library yet
-func (twitchAPI *TwitchAPI) Get(url string, parameters url.Values, data interface{}, onSuccess SuccessCallback,
-	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	url = "https://api.twitch.tv/kraken" + url + "?" + parameters.Encode()
-	request, err := http.NewRequest("GET", url, nil)
+func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{},
+	onSuccess SuccessCallback, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	url := "https://api.twitch.tv/kraken" + baseURL + "?" + parameters.Encode()
+	var request *http.Request
+	var err error
+	if requestBody != nil {
+		serializedRequestBody, err := json.Marshal(requestBody)
+		if err != nil {
+			onInternalError(err)
+			return
+		}
+
+		serializedRequestBodyReader := bytes.NewReader(serializedRequestBody)
+		request, err = http.NewRequest(verb, url, serializedRequestBodyReader)
+	} else {
+		request, err = http.NewRequest(verb, url, nil)
+	}
+	if err != nil {
+		onInternalError(err)
+		return
+	}
+
 	twitchAPI.setHeaders(request)
 	response, err := client.Do(request)
 	if err != nil {
@@ -48,17 +66,41 @@ func (twitchAPI *TwitchAPI) Get(url string, parameters url.Values, data interfac
 		return
 	}
 
-	if response.StatusCode != 200 {
+	if response.StatusCode >= 300 {
 		handleHTTPError(response, onHTTPError, onInternalError)
 		return
 	}
 
-	handleSuccess(response, data, onSuccess, onInternalError)
+	handleSuccess(response, responseBody, onSuccess, onInternalError)
+}
+
+// Get request
+func (twitchAPI *TwitchAPI) Get(baseURL string, parameters url.Values, responseBody interface{}, onSuccess SuccessCallback,
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	twitchAPI.request("GET", baseURL, parameters, nil, responseBody, onSuccess, onHTTPError, onInternalError)
+}
+
+// Put request
+func (twitchAPI *TwitchAPI) Put(baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	twitchAPI.request("PUT", baseURL, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
+}
+
+// Post request
+func (twitchAPI *TwitchAPI) Post(baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	twitchAPI.request("POST", baseURL, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 func (twitchAPI *TwitchAPI) setHeaders(request *http.Request) {
 	request.Header.Add("Client-ID", twitchAPI.ClientID)
 	request.Header.Add("Accept", "application/vnd.twitchtv.v3+json")
+}
+
+// Delete request
+func (twitchAPI *TwitchAPI) Delete(baseURL string, parameters url.Values, responseBody interface{}, onSuccess SuccessCallback,
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	twitchAPI.request("DELETE", baseURL, parameters, nil, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessCallback, onInternalError InternalErrorCallback) {
