@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type errorResponse struct {
@@ -16,9 +17,6 @@ type errorResponse struct {
 type TwitchAPI struct {
 	ClientID string
 }
-
-// RequestParameters for the request
-type RequestParameters map[string]string
 
 // SuccessCallback runs on a successfull request and parse
 type SuccessCallback func()
@@ -36,25 +34,31 @@ func New(clientID string) *TwitchAPI {
 	}
 }
 
+var client = &http.Client{}
+
 // Get can be also used for requests which aren't covered by the library yet
-// Exapmle usage:
-//	var user User
-//	api.Get("https://api.twitch.tv/kraken/users/dankeroni", nil, &user, func() {
-//		fmt.Printf("%+v", user)
-//	}, func(a int, b, c string) { fmt.Println(a, b, c) }, func(a error) { fmt.Println(a) })
-func (twitchAPI *TwitchAPI) Get(url string, parameters RequestParameters, data interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Get(url string, parameters url.Values, data interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	url = url + "?"
-	for _, parameter := range parameters {
-		url = url + parameter + "=" + parameters[parameter]
-	}
-	response, err := http.Get(url)
+	url = "https://api.twitch.tv/kraken" + url + "?" + parameters.Encode()
+	request, err := http.NewRequest("GET", url, nil)
+	twitchAPI.setHeaders(request)
+	response, err := client.Do(request)
 	if err != nil {
+		onInternalError(err)
+		return
+	}
+
+	if response.StatusCode != 200 {
 		handleHTTPError(response, onHTTPError, onInternalError)
 		return
 	}
 
 	handleSuccess(response, data, onSuccess, onInternalError)
+}
+
+func (twitchAPI *TwitchAPI) setHeaders(request *http.Request) {
+	request.Header.Add("Client-ID", twitchAPI.ClientID)
+	request.Header.Add("Accept", "application/vnd.twitchtv.v3+json")
 }
 
 func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessCallback, onInternalError InternalErrorCallback) {
@@ -87,6 +91,7 @@ func handleHTTPError(response *http.Response, onHTTPError HTTPErrorCallback, onI
 		return
 
 	}
+
 	onHTTPError(errorResponse.Status, errorResponse.Message, errorResponse.Error)
 }
 
