@@ -59,7 +59,8 @@ func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values,
 		return
 	}
 
-	twitchAPI.setHeaders(request)
+	request.Header.Add("Client-ID", twitchAPI.ClientID)
+	request.Header.Add("Accept", "application/vnd.twitchtv.v3+json")
 	response, err := client.Do(request)
 	if err != nil {
 		onInternalError(err)
@@ -90,11 +91,6 @@ func (twitchAPI *TwitchAPI) Put(baseURL string, parameters url.Values, requestBo
 func (twitchAPI *TwitchAPI) Post(baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	twitchAPI.request("POST", baseURL, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
-}
-
-func (twitchAPI *TwitchAPI) setHeaders(request *http.Request) {
-	request.Header.Add("Client-ID", twitchAPI.ClientID)
-	request.Header.Add("Accept", "application/vnd.twitchtv.v3+json")
 }
 
 // Delete request
