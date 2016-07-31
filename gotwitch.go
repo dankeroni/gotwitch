@@ -38,8 +38,9 @@ func New(clientID string) *TwitchAPI {
 
 var client = &http.Client{}
 
-func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values, oauthToken string, requestBody interface{}, responseBody interface{},
-	onSuccess SuccessCallback, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values, oauthToken string,
+	requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	url := "https://api.twitch.tv/kraken" + baseURL + "?" + parameters.Encode()
 	var request *http.Request
 	var err error
@@ -78,30 +79,39 @@ func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values,
 }
 
 // Get request
-func (twitchAPI *TwitchAPI) Get(baseURL string, parameters url.Values, oauthToken string, responseBody interface{}, onSuccess SuccessCallback,
-	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("GET", baseURL, parameters, oauthToken, nil, responseBody, onSuccess, onHTTPError, onInternalError)
+func (twitchAPI *TwitchAPI) Get(baseURL string, parameters url.Values, oauthToken string,
+	responseBody interface{}, onSuccess SuccessCallback, onHTTPError HTTPErrorCallback,
+	onInternalError InternalErrorCallback) {
+	twitchAPI.request("GET", baseURL, parameters, oauthToken, nil, responseBody, onSuccess,
+		onHTTPError, onInternalError)
 }
 
 // Put request
-func (twitchAPI *TwitchAPI) Put(baseURL string, parameters url.Values, oauthToken string, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Put(baseURL string, parameters url.Values, oauthToken string,
+	requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("PUT", baseURL, parameters, oauthToken, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.request("PUT", baseURL, parameters, oauthToken, requestBody, responseBody, onSuccess,
+		onHTTPError, onInternalError)
 }
 
 // Post request
-func (twitchAPI *TwitchAPI) Post(baseURL string, parameters url.Values, oauthToken string, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Post(baseURL string, parameters url.Values, oauthToken string,
+	requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("POST", baseURL, parameters, oauthToken, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.request("POST", baseURL, parameters, oauthToken, requestBody, responseBody, onSuccess,
+		onHTTPError, onInternalError)
 }
 
 // Delete request
-func (twitchAPI *TwitchAPI) Delete(baseURL string, parameters url.Values, oauthToken string, responseBody interface{}, onSuccess SuccessCallback,
-	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("DELETE", baseURL, parameters, oauthToken, nil, responseBody, onSuccess, onHTTPError, onInternalError)
+func (twitchAPI *TwitchAPI) Delete(baseURL string, parameters url.Values, oauthToken string,
+	responseBody interface{}, onSuccess SuccessCallback, onHTTPError HTTPErrorCallback,
+	onInternalError InternalErrorCallback) {
+	twitchAPI.request("DELETE", baseURL, parameters, oauthToken, nil, responseBody, onSuccess,
+		onHTTPError, onInternalError)
 }
 
-func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessCallback, onInternalError InternalErrorCallback) {
+func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessCallback,
+	onInternalError InternalErrorCallback) {
 	body, err := body(response)
 	if err != nil {
 		onInternalError(err)
@@ -117,7 +127,8 @@ func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessC
 	onSuccess()
 }
 
-func handleHTTPError(response *http.Response, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+func handleHTTPError(response *http.Response, onHTTPError HTTPErrorCallback,
+	onInternalError InternalErrorCallback) {
 	body, err := body(response)
 	if err != nil {
 		onInternalError(err)

@@ -51,10 +51,12 @@ type streamsChannel struct {
 type StreamSuccessCallback func(Stream)
 
 // Stream request for https://api.twitch.tv/kraken/streams/:channel
-func (twitchAPI *TwitchAPI) Stream(streamName string, onSuccess StreamSuccessCallback, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+func (twitchAPI *TwitchAPI) Stream(channelName string, onSuccess StreamSuccessCallback,
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	var streamsChannel streamsChannel
 	onSuccessfulRequest := func() {
 		onSuccess(streamsChannel.Stream)
 	}
-	twitchAPI.Get("/streams/"+streamName, nil, "", &streamsChannel, onSuccessfulRequest, onHTTPError, onInternalError)
+	twitchAPI.Get("/streams/"+channelName, nil, "", &streamsChannel, onSuccessfulRequest,
+		onHTTPError, onInternalError)
 }
