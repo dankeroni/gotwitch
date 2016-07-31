@@ -16,7 +16,8 @@ type errorResponse struct {
 
 // TwitchAPI struct
 type TwitchAPI struct {
-	ClientID string
+	ClientID     string
+	ClientSecret string
 }
 
 // SuccessCallback runs on a successfull request and parse
@@ -37,7 +38,7 @@ func New(clientID string) *TwitchAPI {
 
 var client = &http.Client{}
 
-func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{},
+func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values, oauthToken string, requestBody interface{}, responseBody interface{},
 	onSuccess SuccessCallback, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	url := "https://api.twitch.tv/kraken" + baseURL + "?" + parameters.Encode()
 	var request *http.Request
@@ -61,6 +62,7 @@ func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values,
 
 	request.Header.Add("Client-ID", twitchAPI.ClientID)
 	request.Header.Add("Accept", "application/vnd.twitchtv.v3+json")
+	request.Header.Add("Authorization", "OAuth "+oauthToken)
 	response, err := client.Do(request)
 	if err != nil {
 		onInternalError(err)
@@ -76,27 +78,27 @@ func (twitchAPI *TwitchAPI) request(verb, baseURL string, parameters url.Values,
 }
 
 // Get request
-func (twitchAPI *TwitchAPI) Get(baseURL string, parameters url.Values, responseBody interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Get(baseURL string, parameters url.Values, oauthToken string, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("GET", baseURL, parameters, nil, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.request("GET", baseURL, parameters, oauthToken, nil, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // Put request
-func (twitchAPI *TwitchAPI) Put(baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Put(baseURL string, parameters url.Values, oauthToken string, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("PUT", baseURL, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.request("PUT", baseURL, parameters, oauthToken, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // Post request
-func (twitchAPI *TwitchAPI) Post(baseURL string, parameters url.Values, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Post(baseURL string, parameters url.Values, oauthToken string, requestBody interface{}, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("POST", baseURL, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.request("POST", baseURL, parameters, oauthToken, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // Delete request
-func (twitchAPI *TwitchAPI) Delete(baseURL string, parameters url.Values, responseBody interface{}, onSuccess SuccessCallback,
+func (twitchAPI *TwitchAPI) Delete(baseURL string, parameters url.Values, oauthToken string, responseBody interface{}, onSuccess SuccessCallback,
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	twitchAPI.request("DELETE", baseURL, parameters, nil, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.request("DELETE", baseURL, parameters, oauthToken, nil, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessCallback, onInternalError InternalErrorCallback) {

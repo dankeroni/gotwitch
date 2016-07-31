@@ -12,6 +12,7 @@ import (
 )
 
 // GamesTop https://api.twitch.tv/kraken/games/top (https://mholt.github.io/json-to-go/)
+// The oauthToken is optional and can be replaced by ""
 type GamesTop struct {
 	Total int `json:"_total"`
 	Links struct {
@@ -54,7 +55,7 @@ func main() {
 	onSuccess := func() {
 		fmt.Printf("%+v", gamesTop)
 	}
-	api.Get("/games/top", requestParameters, &gamesTop, onSuccess, onHTTPError, onInternalError)
+	api.Get("/games/top", requestParameters, "<oauthToken>", &gamesTop, onSuccess, onHTTPError, onInternalError)
 }
 
 func onHTTPError(statusCode int, statusMessage, errorMessage string) {
