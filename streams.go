@@ -43,18 +43,18 @@ type Stream struct {
 	} `json:"channel"`
 }
 
-type streamsStream struct {
+type streamsChannel struct {
 	Stream Stream `json:"stream"`
 }
 
 // StreamSuccessCallback runs on a successfull request and parse using the Stream method
 type StreamSuccessCallback func(Stream)
 
-// GetStream request for https://api.twitch.tv/kraken/streams/:channel
-func (twitchAPI *TwitchAPI) GetStream(streamName string, onSuccess StreamSuccessCallback, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
-	var streamsStream streamsStream
+// Stream request for https://api.twitch.tv/kraken/streams/:channel
+func (twitchAPI *TwitchAPI) Stream(streamName string, onSuccess StreamSuccessCallback, onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	var streamsChannel streamsChannel
 	onSuccessfulRequest := func() {
-		onSuccess(streamsStream.Stream)
+		onSuccess(streamsChannel.Stream)
 	}
-	twitchAPI.Get("/streams/"+streamName, nil, "", &streamsStream, onSuccessfulRequest, onHTTPError, onInternalError)
+	twitchAPI.Get("/streams/"+streamName, nil, "", &streamsChannel, onSuccessfulRequest, onHTTPError, onInternalError)
 }
