@@ -27,6 +27,7 @@ type Channel struct {
 	Followers                    int         `json:"followers"`
 }
 
+// AuthenticatedChannel json to struct
 type AuthenticatedChannel struct {
 	Mature                       bool        `json:"mature"`
 	Status                       string      `json:"status"`
@@ -53,10 +54,11 @@ type AuthenticatedChannel struct {
 	StreamKey                    string      `json:"stream_key"`
 }
 
-// ChannelSuccessCallback runs on a successfull request and parse using the Stream method
+// ChannelSuccessCallback runs on a successfull request and parse using the Channel method
 type ChannelSuccessCallback func(Channel)
 
-// AuthenticatedChannelSuccessCallback runs on a successfull request and parse using the Stream method
+// AuthenticatedChannelSuccessCallback runs on a successfull request and parse
+// using the AuthenticatedChannel method
 type AuthenticatedChannelSuccessCallback func(AuthenticatedChannel)
 
 // Channel request for https://api.twitch.tv/kraken/channels/:channel
