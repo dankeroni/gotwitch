@@ -118,10 +118,12 @@ func handleSuccess(response *http.Response, data interface{}, onSuccess SuccessC
 		return
 	}
 
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		onInternalError(err)
-		return
+	if len(body) != 0 {
+		err = json.Unmarshal(body, &data)
+		if err != nil {
+			onInternalError(err)
+			return
+		}
 	}
 
 	onSuccess()

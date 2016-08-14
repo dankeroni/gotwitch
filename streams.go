@@ -35,7 +35,8 @@ type streamsFollowed struct {
 // StreamSuccessCallback runs on a successfull request and parse using the Stream method
 type StreamSuccessCallback func(Stream)
 
-// FollowedStreamsSuccessCallback runs on a successfull request and parse using the Stream method
+// FollowedStreamsSuccessCallback runs on a successfull request and parse
+// using the FollowedStreams method
 type FollowedStreamsSuccessCallback func([]Stream)
 
 // Stream request for https://api.twitch.tv/kraken/streams/:channel
