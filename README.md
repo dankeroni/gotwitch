@@ -86,7 +86,8 @@ func main() {
         fmt.Printf("%+v", gamesTop)
     }
 
-    // The oauthToken is optional and can be replaced by and empty string
+    // The oauthToken is optional and can be replaced with an empty string
+    // requestParameters can also be nil
     api.Get("/games/top", requestParameters, "<oauthToken>", &gamesTop,
         onSuccess, onHTTPError, onInternalError)
 }
