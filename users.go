@@ -28,15 +28,9 @@ type usersUserBlocks struct {
 	Blocks []Block `json:"blocks"`
 }
 
-// BlockSuccessCallback runs on a successfull request and parse using the Block/PutBlock method
-type BlockSuccessCallback func(Block)
-
-// BlocksSuccessCallback runs on a successfull request and parse using the Blocks method
-type BlocksSuccessCallback func([]Block)
-
-// Blocks request for https://api.twitch.tv/kraken/users/:user/blocks
-func (twitchAPI *TwitchAPI) Blocks(oauthToken, user string, parameters url.Values,
-	onSuccess BlocksSuccessCallback, onHTTPError HTTPErrorCallback,
+// GetBlocks request for GET https://api.twitch.tv/kraken/users/:user/blocks
+func (twitchAPI *TwitchAPI) GetBlocks(oauthToken, user string, parameters url.Values,
+	onSuccess func([]Block), onHTTPError HTTPErrorCallback,
 	onInternalError InternalErrorCallback) {
 	var usersUserBlocks usersUserBlocks
 	onSuccessfulRequest := func() {
@@ -46,8 +40,8 @@ func (twitchAPI *TwitchAPI) Blocks(oauthToken, user string, parameters url.Value
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
-// Block request for https://api.twitch.tv/kraken/users/:user/blocks/:target
-func (twitchAPI *TwitchAPI) Block(oauthToken, user, target string, onSuccess BlockSuccessCallback,
+// GetBlock request for GET https://api.twitch.tv/kraken/users/:user/blocks/:target
+func (twitchAPI *TwitchAPI) GetBlock(oauthToken, user, target string, onSuccess func(Block),
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	var block Block
 	onSuccessfulRequest := func() {
@@ -57,10 +51,9 @@ func (twitchAPI *TwitchAPI) Block(oauthToken, user, target string, onSuccess Blo
 		onHTTPError, onInternalError)
 }
 
-// PutBlock request for https://api.twitch.tv/kraken/users/:user/blocks/:target
-func (twitchAPI *TwitchAPI) PutBlock(oauthToken, user, target string,
-	onSuccess BlockSuccessCallback, onHTTPError HTTPErrorCallback,
-	onInternalError InternalErrorCallback) {
+// PutBlock request for PUT https://api.twitch.tv/kraken/users/:user/blocks/:target
+func (twitchAPI *TwitchAPI) PutBlock(oauthToken, user, target string, onSuccess func(Block),
+	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	var block Block
 	onSuccessfulRequest := func() {
 		onSuccess(block)
@@ -70,7 +63,7 @@ func (twitchAPI *TwitchAPI) PutBlock(oauthToken, user, target string,
 		onHTTPError, onInternalError)
 }
 
-// DeleteBlock request for https://api.twitch.tv/kraken/users/:user/blocks/:target
+// DeleteBlock request for DELETE https://api.twitch.tv/kraken/users/:user/blocks/:target
 func (twitchAPI *TwitchAPI) DeleteBlock(oauthToken, user, target string,
 	onSuccess func(), onHTTPError HTTPErrorCallback,
 	onInternalError InternalErrorCallback) {

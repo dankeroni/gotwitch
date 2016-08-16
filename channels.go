@@ -54,15 +54,8 @@ type AuthenticatedChannel struct {
 	StreamKey                    string      `json:"stream_key"`
 }
 
-// ChannelSuccessCallback runs on a successfull request and parse using the Channel method
-type ChannelSuccessCallback func(Channel)
-
-// AuthenticatedChannelSuccessCallback runs on a successfull request and parse
-// using the AuthenticatedChannel method
-type AuthenticatedChannelSuccessCallback func(AuthenticatedChannel)
-
-// Channel request for https://api.twitch.tv/kraken/channels/:channel
-func (twitchAPI *TwitchAPI) Channel(channelName string, onSuccess ChannelSuccessCallback,
+// GetChannel request for GET https://api.twitch.tv/kraken/channels/:channel
+func (twitchAPI *TwitchAPI) GetChannel(channelName string, onSuccess func(Channel),
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	var channel Channel
 	onSuccessfulRequest := func() {
@@ -72,9 +65,9 @@ func (twitchAPI *TwitchAPI) Channel(channelName string, onSuccess ChannelSuccess
 		onHTTPError, onInternalError)
 }
 
-// AuthenticatedChannel request for https://api.twitch.tv/kraken/channel
-func (twitchAPI *TwitchAPI) AuthenticatedChannel(oauthToken string,
-	onSuccess AuthenticatedChannelSuccessCallback, onHTTPError HTTPErrorCallback,
+// GetAuthenticatedChannel request for GET https://api.twitch.tv/kraken/channel
+func (twitchAPI *TwitchAPI) GetAuthenticatedChannel(oauthToken string,
+	onSuccess func(AuthenticatedChannel), onHTTPError HTTPErrorCallback,
 	onInternalError InternalErrorCallback) {
 	var authenticatedChannel AuthenticatedChannel
 	onSuccessfulRequest := func() {

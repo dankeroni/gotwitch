@@ -32,15 +32,8 @@ type streamsFollowed struct {
 	Streams []Stream `json:"streams"`
 }
 
-// StreamSuccessCallback runs on a successfull request and parse using the Stream method
-type StreamSuccessCallback func(Stream)
-
-// FollowedStreamsSuccessCallback runs on a successfull request and parse
-// using the FollowedStreams method
-type FollowedStreamsSuccessCallback func([]Stream)
-
 // Stream request for https://api.twitch.tv/kraken/streams/:channel
-func (twitchAPI *TwitchAPI) Stream(channelName string, onSuccess StreamSuccessCallback,
+func (twitchAPI *TwitchAPI) Stream(channelName string, onSuccess func(Stream),
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	var streamsChannel streamsChannel
 	onSuccessfulRequest := func() {
@@ -52,7 +45,7 @@ func (twitchAPI *TwitchAPI) Stream(channelName string, onSuccess StreamSuccessCa
 
 // FollowedStreams request for https://api.twitch.tv/kraken/streams/followed
 func (twitchAPI *TwitchAPI) FollowedStreams(oauthToken string, parameters url.Values,
-	onSuccess FollowedStreamsSuccessCallback, onHTTPError HTTPErrorCallback,
+	onSuccess func([]Stream), onHTTPError HTTPErrorCallback,
 	onInternalError InternalErrorCallback) {
 	var streamsFollowed streamsFollowed
 	onSuccessfulRequest := func() {
