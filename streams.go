@@ -32,8 +32,8 @@ type streamsFollowed struct {
 	Streams []Stream `json:"streams"`
 }
 
-// Stream request for https://api.twitch.tv/kraken/streams/:channel
-func (twitchAPI *TwitchAPI) Stream(channelName string, onSuccess func(Stream),
+// Stream request for GET https://api.twitch.tv/kraken/streams/:channel
+func (twitchAPI *TwitchAPI) GetStream(channelName string, onSuccess func(Stream),
 	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
 	var streamsChannel streamsChannel
 	onSuccessfulRequest := func() {
@@ -43,8 +43,8 @@ func (twitchAPI *TwitchAPI) Stream(channelName string, onSuccess func(Stream),
 		onHTTPError, onInternalError)
 }
 
-// FollowedStreams request for https://api.twitch.tv/kraken/streams/followed
-func (twitchAPI *TwitchAPI) FollowedStreams(oauthToken string, parameters url.Values,
+// FollowedStreams request for GET https://api.twitch.tv/kraken/streams/followed
+func (twitchAPI *TwitchAPI) GetFollowedStreams(oauthToken string, parameters url.Values,
 	onSuccess func([]Stream), onHTTPError HTTPErrorCallback,
 	onInternalError InternalErrorCallback) {
 	var streamsFollowed streamsFollowed
