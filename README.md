@@ -10,10 +10,10 @@ import (
     "github.com/dankeroni/gotwitch"
 )
 
-var api = gotwitch.New("m5l9rbvo1xdkng6fl5x3oiy88xiq9kf")
+var api = gotwitch.New("<ClientID>")
 
 func main() {
-    api.Stream("pajlada", onSuccess, onHTTPError, onInternalError)
+    api.GetStream("pajlada", onSuccess, onHTTPError, onInternalError)
 }
 
 func onSuccess(stream gotwitch.Stream) {
@@ -45,10 +45,6 @@ import (
 // GamesTop https://api.twitch.tv/kraken/games/top (https://mholt.github.io/json-to-go/)
 type GamesTop struct {
     Total int `json:"_total"`
-    Links struct {
-        Self string `json:"self"`
-        Next string `json:"next"`
-    } `json:"_links"`
     Top []struct {
         Game struct {
             Name        string `json:"name"`
@@ -67,8 +63,6 @@ type GamesTop struct {
                 Small    string `json:"small"`
                 Template string `json:"template"`
             } `json:"logo"`
-            Links struct {
-            } `json:"_links"`
         } `json:"game"`
         Viewers  int `json:"viewers"`
         Channels int `json:"channels"`
