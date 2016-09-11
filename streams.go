@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"github.com/dankeroni/jsonapi"
 	"net/url"
 	"time"
 )
@@ -34,23 +35,23 @@ type streamsFollowed struct {
 
 // GetStream request for GET https://api.twitch.tv/kraken/streams/:channel
 func (twitchAPI *TwitchAPI) GetStream(channelName string, onSuccess func(Stream),
-	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
 	var streamsChannel streamsChannel
 	onSuccessfulRequest := func() {
 		onSuccess(streamsChannel.Stream)
 	}
-	twitchAPI.Get("/streams/"+channelName, nil, "", &streamsChannel, onSuccessfulRequest,
+	twitchAPI.Get("/streams/"+channelName, nil, &streamsChannel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 
 // GetFollowedStreams request for GET https://api.twitch.tv/kraken/streams/followed
 func (twitchAPI *TwitchAPI) GetFollowedStreams(oauthToken string, parameters url.Values,
-	onSuccess func([]Stream), onHTTPError HTTPErrorCallback,
-	onInternalError InternalErrorCallback) {
+	onSuccess func([]Stream), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
 	var streamsFollowed streamsFollowed
 	onSuccessfulRequest := func() {
 		onSuccess(streamsFollowed.Streams)
 	}
-	twitchAPI.Get("/streams/followed", parameters, oauthToken, &streamsFollowed,
+	twitchAPI.AuthenticatedGet("/streams/followed", parameters, oauthToken, &streamsFollowed,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }

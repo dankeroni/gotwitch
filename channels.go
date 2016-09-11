@@ -1,6 +1,9 @@
 package gotwitch
 
-import "time"
+import (
+	"github.com/dankeroni/jsonapi"
+	"time"
+)
 
 // Channel json to struct
 type Channel struct {
@@ -56,23 +59,23 @@ type AuthenticatedChannel struct {
 
 // GetChannel request for GET https://api.twitch.tv/kraken/channels/:channel
 func (twitchAPI *TwitchAPI) GetChannel(channelName string, onSuccess func(Channel),
-	onHTTPError HTTPErrorCallback, onInternalError InternalErrorCallback) {
+	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
 	var channel Channel
 	onSuccessfulRequest := func() {
 		onSuccess(channel)
 	}
-	twitchAPI.Get("/channels/"+channelName, nil, "", &channel, onSuccessfulRequest,
+	twitchAPI.JSONAPI.Get("/channels/"+channelName, nil, &channel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 
 // GetAuthenticatedChannel request for GET https://api.twitch.tv/kraken/channel
 func (twitchAPI *TwitchAPI) GetAuthenticatedChannel(oauthToken string,
-	onSuccess func(AuthenticatedChannel), onHTTPError HTTPErrorCallback,
-	onInternalError InternalErrorCallback) {
+	onSuccess func(AuthenticatedChannel), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
 	var authenticatedChannel AuthenticatedChannel
 	onSuccessfulRequest := func() {
 		onSuccess(authenticatedChannel)
 	}
-	twitchAPI.Get("/channel", nil, oauthToken, &authenticatedChannel, onSuccessfulRequest,
-		onHTTPError, onInternalError)
+	twitchAPI.AuthenticatedGet("/channel", nil, oauthToken, &authenticatedChannel,
+		onSuccessfulRequest, onHTTPError, onInternalError)
 }

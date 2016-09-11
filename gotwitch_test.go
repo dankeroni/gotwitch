@@ -1,5 +1,6 @@
 package gotwitch
 
+/*
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -41,3 +42,4 @@ func RunSimpleTest(t *testing.T, expected interface{}, actual interface{}, expec
 		assert.NotEqual(t, expected, actual)
 	}
 }
+*/
