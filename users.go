@@ -36,8 +36,10 @@ type Follow struct {
 	Channel       Channel   `json:"channel"`
 }
 
-type usersUserFollowsChannels struct {
+// Follows json to struct
+type Follows struct {
 	Follows []Follow `json:"follows"`
+	Total   int      `json:"_total"`
 }
 
 // GetBlocks request for GET https://api.twitch.tv/kraken/users/:user/blocks
@@ -81,13 +83,13 @@ func (twitchAPI *TwitchAPI) DeleteBlock(oauthToken, user, target string, onSucce
 }
 
 // GetFollows request for GET https://api.twitch.tv/kraken/users/:user/follows/channels
-func (twitchAPI *TwitchAPI) GetFollows(user string, parameters url.Values, onSuccess func([]Follow),
+func (twitchAPI *TwitchAPI) GetFollows(user string, parameters url.Values, onSuccess func(Follows),
 	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
-	var usersUserFollowsChannels usersUserFollowsChannels
+	var follows Follows
 	onSuccessfulRequest := func() {
-		onSuccess(usersUserFollowsChannels.Follows)
+		onSuccess(follows)
 	}
-	twitchAPI.Get("/users/"+user+"/follows/channels", parameters, &usersUserFollowsChannels,
+	twitchAPI.Get("/users/"+user+"/follows/channels", parameters, &follows,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
