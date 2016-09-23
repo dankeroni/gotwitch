@@ -1,6 +1,9 @@
 package gotwitch
 
-import "time"
+import (
+	"github.com/dankeroni/jsonapi"
+	"time"
+)
 
 // Post json to struct
 type Post struct {
@@ -28,12 +31,10 @@ type Post struct {
 		VideoLength  int       `json:"video_length"`
 		ProviderName string    `json:"provider_name"`
 	} `json:"embeds"`
-	Reactions struct {
-		Endorse struct {
-			Emote   string `json:"emote"`
-			Count   int    `json:"count"`
-			UserIds []int  `json:"user_ids"`
-		} `json:"endorse"`
+	Reactions map[string]struct {
+		Emote   string `json:"emote"`
+		Count   int    `json:"count"`
+		UserIds []int  `json:"user_ids"`
 	} `json:"reactions"`
 	User     User `json:"user"`
 	Comments struct {
@@ -54,4 +55,15 @@ type Posts struct {
 	Cursor string `json:"_cursor"`
 	Topic  string `json:"_topic"`
 	Posts  []Post `json:"posts"`
+}
+
+// GetPost request for GET https://api.twitch.tv/kraken/feed/:channel/posts/:id
+func (twitchAPI *TwitchAPI) GetPost(channelName string, id string, onSuccess func(Post),
+	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
+	var post Post
+	onSuccessfulRequest := func() {
+		onSuccess(post)
+	}
+	twitchAPI.Get("/feed/"+channelName+"/posts/"+id, nil, &post, onSuccessfulRequest,
+		onHTTPError, onInternalError)
 }
