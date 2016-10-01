@@ -43,8 +43,8 @@ func (twitchAPI *TwitchAPI) GetChannel(channelName string, onSuccess func(Channe
 		onHTTPError, onInternalError)
 }
 
-// GetAuthenticatedChannel request for GET https://api.twitch.tv/kraken/channel
-func (twitchAPI *TwitchAPI) GetAuthenticatedChannel(oauthToken string,
+// AuthenticatedGetChannel request for GET https://api.twitch.tv/kraken/channel
+func (twitchAPI *TwitchAPI) AuthenticatedGetChannel(oauthToken string,
 	onSuccess func(Channel), onHTTPError jsonapi.HTTPErrorCallback,
 	onInternalError jsonapi.InternalErrorCallback) {
 	var channel Channel
