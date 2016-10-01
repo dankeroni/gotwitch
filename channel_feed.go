@@ -2,6 +2,7 @@ package gotwitch
 
 import (
 	"github.com/dankeroni/jsonapi"
+	"net/url"
 	"time"
 )
 
@@ -34,7 +35,7 @@ type Post struct {
 	Reactions map[string]struct {
 		Emote   string `json:"emote"`
 		Count   int    `json:"count"`
-		UserIds []int  `json:"user_ids"`
+		UserIDs []int  `json:"user_ids"`
 	} `json:"reactions"`
 	User     User `json:"user"`
 	Comments struct {
@@ -49,6 +50,12 @@ type Post struct {
 	} `json:"permissions"`
 }
 
+// SharedPost json to struct
+type SharedPost struct {
+	Tweet string `json:"tweet"`
+	Post  Post   `json:"post"`
+}
+
 // Posts json to struct
 type Posts struct {
 	Total  int    `json:"_total"`
@@ -57,13 +64,104 @@ type Posts struct {
 	Posts  []Post `json:"posts"`
 }
 
+// Reaction json to struct
+type Reaction struct {
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	EmoteID   string    `json:"emote_id"`
+	User      User      `json:"user"`
+}
+
 // GetPost request for GET https://api.twitch.tv/kraken/feed/:channel/posts/:id
-func (twitchAPI *TwitchAPI) GetPost(channelName string, id string, onSuccess func(Post),
+func (twitchAPI *TwitchAPI) GetPost(postID, channelName string, onSuccess func(Post),
 	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
 	var post Post
 	onSuccessfulRequest := func() {
 		onSuccess(post)
 	}
-	twitchAPI.Get("/feed/"+channelName+"/posts/"+id, nil, &post, onSuccessfulRequest,
+	twitchAPI.Get("/feed/"+channelName+"/posts/"+postID, nil, &post, onSuccessfulRequest,
 		onHTTPError, onInternalError)
+}
+
+// AuthenticatedGetPost request for GET https://api.twitch.tv/kraken/feed/:channel/posts/:id
+func (twitchAPI *TwitchAPI) AuthenticatedGetPost(oauthToken, postID, channelName string,
+	onSuccess func(Post), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	var post Post
+	onSuccessfulRequest := func() {
+		onSuccess(post)
+	}
+	twitchAPI.AuthenticatedGet("/feed/"+channelName+"/posts/"+postID, nil, oauthToken, &post,
+		onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+// PostPost request for POST https://api.twitch.tv/kraken/feed/:channel/posts
+func (twitchAPI *TwitchAPI) PostPost(oauthToken, content, channelName string, parameters url.Values,
+	onSuccess func(SharedPost), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	var sharedPost SharedPost
+	onSuccessfulRequest := func() {
+		onSuccess(sharedPost)
+	}
+	if parameters == nil {
+		parameters = url.Values{}
+	}
+	parameters.Add("content", content)
+	twitchAPI.AuthenticatedPost("/feed/"+channelName+"/posts", parameters, oauthToken, nil,
+		&sharedPost, onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+// DeletePost request for DELETE https://api.twitch.tv/kraken/feed/:channel/posts/:id
+func (twitchAPI *TwitchAPI) DeletePost(oauthToken, postID, channelName string, onSuccess func(),
+	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
+	twitchAPI.AuthenticatedDelete("/feed/"+channelName+"/posts/"+postID, nil, oauthToken, nil,
+		onSuccess, onHTTPError, onInternalError)
+}
+
+// GetPosts request for GET https://api.twitch.tv/kraken/feed/:channel/posts
+func (twitchAPI *TwitchAPI) GetPosts(channelName string, parameters url.Values,
+	onSuccess func(Posts), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	var posts Posts
+	onSuccessfulRequest := func() {
+		onSuccess(posts)
+	}
+	twitchAPI.Get("/feed/"+channelName+"/posts", parameters, &posts, onSuccessfulRequest,
+		onHTTPError, onInternalError)
+}
+
+// AuthenticatedGetPosts request for GET https://api.twitch.tv/kraken/feed/:channel/posts
+func (twitchAPI *TwitchAPI) AuthenticatedGetPosts(oauthToken, channelName string,
+	parameters url.Values, onSuccess func(Posts), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	var posts Posts
+	onSuccessfulRequest := func() {
+		onSuccess(posts)
+	}
+	twitchAPI.AuthenticatedGet("/feed/"+channelName+"/posts", parameters, oauthToken, &posts,
+		onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+// PostReaction request for POST https://api.twitch.tv/kraken/feed/:channel/posts/:id/reactions
+func (twitchAPI *TwitchAPI) PostReaction(oauthToken, emoteID, postID, channelName string,
+	onSuccess func(Reaction), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	var reaction Reaction
+	onSuccessfulRequest := func() {
+		onSuccess(reaction)
+	}
+	parameters := url.Values{}
+	parameters.Add("emote_id", emoteID)
+	twitchAPI.AuthenticatedPost("/feed/"+channelName+"/posts/"+postID+"/reactions", parameters,
+		oauthToken, nil, &reaction, onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+// DeleteReaction request for DELETE https://api.twitch.tv/kraken/feed/:channel/posts/:id/reactions
+func (twitchAPI *TwitchAPI) DeleteReaction(oauthToken, emoteID, postID, channelName string,
+	onSuccess func(), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	parameters := url.Values{}
+	parameters.Add("emote_id", emoteID)
+	twitchAPI.AuthenticatedDelete("/feed/"+channelName+"/posts/"+postID+"/reactions", parameters,
+		oauthToken, nil, onSuccess, onHTTPError, onInternalError)
 }
