@@ -1,8 +1,10 @@
 package gotwitch
 
 import (
-	"github.com/dankeroni/jsonapi"
+	"net/url"
 	"time"
+
+	"github.com/dankeroni/jsonapi"
 )
 
 // Stream json to struct
@@ -28,6 +30,10 @@ type streamsChannel struct {
 	Stream Stream `json:"stream"`
 }
 
+type streamsListChannel struct {
+	Streams []Stream `json:"streams"`
+}
+
 // GetStream request for GET https://api.twitch.tv/kraken/streams/:channel
 func (twitchAPI *TwitchAPI) GetStream(channelName string, onSuccess func(Stream),
 	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
@@ -36,5 +42,19 @@ func (twitchAPI *TwitchAPI) GetStream(channelName string, onSuccess func(Stream)
 		onSuccess(streamsChannel.Stream)
 	}
 	twitchAPI.Get("/streams/"+channelName, nil, &streamsChannel, onSuccessfulRequest,
+		onHTTPError, onInternalError)
+}
+
+// GetStreams request for GET https://api.twitch.tv/kraken/streams?channel=:channelList
+// channelList should be a comma-separated list of streams
+func (twitchAPI *TwitchAPI) GetStreams(channelList string, onSuccess func([]Stream),
+	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
+	var streamsListChannel streamsListChannel
+	onSuccessfulRequest := func() {
+		onSuccess(streamsListChannel.Streams)
+	}
+	parameters := make(url.Values)
+	parameters.Add("channel", channelList)
+	twitchAPI.Get("/streams", parameters, &streamsListChannel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
