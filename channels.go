@@ -1,8 +1,9 @@
 package gotwitch
 
 import (
-	"github.com/dankeroni/jsonapi"
 	"time"
+
+	"github.com/dankeroni/jsonapi"
 )
 
 // Channel json to struct
@@ -30,6 +31,15 @@ type Channel struct {
 	Followers                    int       `json:"followers"`
 	Email                        string    `json:"email"`
 	StreamKey                    string    `json:"stream_key"`
+}
+
+// GetName returns the users display name if it's set, otherwise return the login name
+func (c *Channel) GetName() string {
+	if c.DisplayName == "" {
+		return c.Name
+	}
+
+	return c.DisplayName
 }
 
 // GetChannel request for GET https://api.twitch.tv/kraken/channels/:channel
