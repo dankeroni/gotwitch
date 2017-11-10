@@ -1,4 +1,6 @@
-# gotwitch [![Build Status](https://travis-ci.org/dankeroni/gotwitch.svg?branch=master)](https://travis-ci.org/dankeroni/gotwitch)
+# gotwitch [![Build Status](https://travis-ci.org/dankeroni/gotwitch.svg?branch=helix)](https://travis-ci.org/dankeroni/gotwitch)
+
+This branch is using the new **helix** api which is under development.
 
 ## Example for getting a Stream object
 ```go
