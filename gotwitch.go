@@ -32,6 +32,19 @@ func New(clientID string) *TwitchAPI {
 	}
 }
 
+// NewV3 instantiates a new TwitchAPI object
+func NewV3(clientID string) *TwitchAPI {
+	return &TwitchAPI{
+		JSONAPI: jsonapi.JSONAPI{
+			BaseURL: "https://api.twitch.tv/kraken",
+			Headers: map[string]string{
+				"Client-ID": clientID,
+				"Accept":    "application/vnd.twitchtv.v3+json",
+			},
+		},
+	}
+}
+
 // AuthenticatedGet request
 func (twitchAPI *TwitchAPI) AuthenticatedGet(url string, parameters url.Values, oauthToken string,
 	responseBody interface{}, onSuccess jsonapi.SuccessCallback, onHTTPError jsonapi.HTTPErrorCallback,
