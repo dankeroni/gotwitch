@@ -56,3 +56,18 @@ func (twitchAPI *TwitchAPI) GetUsers(userIDs []string, onSuccess func([]User), o
 	twitchAPI.Get("/users", parameters, &usersListChannel,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
+
+// GetUsersByLogin request for GET https://api.twitch.tv/helix/users
+func (twitchAPI *TwitchAPI) GetUsersByLogin(userLogins []string, onSuccess func([]User), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	var usersListChannel usersListChannel
+	onSuccessfulRequest := func() {
+		onSuccess(usersListChannel.Data)
+	}
+	parameters := make(url.Values)
+	for _, userLogin := range userLogins {
+		parameters.Add("login", userLogin)
+	}
+	twitchAPI.Get("/users", parameters, &usersListChannel,
+		onSuccessfulRequest, onHTTPError, onInternalError)
+}
