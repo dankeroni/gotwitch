@@ -25,8 +25,9 @@ func New(clientID string) *TwitchAPI {
 		JSONAPI: jsonapi.JSONAPI{
 			BaseURL: "https://api.twitch.tv/helix",
 			Headers: map[string]string{
-				"Client-ID": clientID,
-				"Accept":    "application/json",
+				"Client-ID":    clientID,
+				"Accept":       "application/json",
+				"Content-Type": "application/json",
 			},
 		},
 	}

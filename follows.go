@@ -1,9 +1,11 @@
 package gotwitch
 
 import (
-	"github.com/dankeroni/jsonapi"
+	"fmt"
 	"net/url"
 	"time"
+
+	"github.com/dankeroni/jsonapi"
 )
 
 // Follow json to struct
@@ -57,4 +59,75 @@ func (twitchAPI *TwitchAPI) DeleteFollow(oauthToken, user, target string, onSucc
 	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
 	twitchAPI.AuthenticatedDelete("/users/"+user+"/follows/channels/"+target, nil, oauthToken, nil, onSuccess,
 		onHTTPError, onInternalError)
+}
+
+type Webhook struct {
+	// URL where notifications will be delivered
+	CallbackURL string `json:"hub.callback"`
+
+	// Type of request. Valid values: subscribe, unsubscribe
+	Mode string `json:"hub.mode"`
+
+	// URL for the topic to subscribe to or unsubscribe from
+	Topic string `json:"hub.topic"`
+
+	LeaseSeconds int `json:"hub.lease_seconds,omitempty"`
+
+	Secret string `json:"hub.secret,omitempty"`
+}
+
+// SubscribeFollows subscribes to the follow webhook
+func (twitchAPI *TwitchAPI) SubscribeFollows(userID, callbackURL string, onSuccess func(), onError func()) {
+	var follows Follows
+	onSuccessfulRequest := func() {
+		onSuccess()
+	}
+	requestBody := Webhook{
+		CallbackURL:  callbackURL,
+		Mode:         "subscribe",
+		Topic:        "https://api.twitch.tv/helix/users/follows?first=1&to_id=" + userID,
+		LeaseSeconds: 600,
+	}
+
+	onHTTPError := func(statusCode int, statusMessage, errorMessage string) {
+		fmt.Println("error", errorMessage, "ok", statusMessage)
+		onError()
+	}
+
+	onInternalError := func(err error) {
+		fmt.Println(err)
+		onError()
+	}
+
+	parameters := url.Values{}
+	twitchAPI.JSONAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
+		onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+// SubscribeStreamUpDown xd
+func (twitchAPI *TwitchAPI) SubscribeStreams(userID, callbackURL string, onSuccess func(), onError func()) {
+	var follows Follows
+	onSuccessfulRequest := func() {
+		onSuccess()
+	}
+	requestBody := Webhook{
+		CallbackURL:  callbackURL,
+		Mode:         "subscribe",
+		Topic:        "https://api.twitch.tv/helix/streams?user_id=" + userID,
+		LeaseSeconds: 3600,
+	}
+
+	onHTTPError := func(statusCode int, statusMessage, errorMessage string) {
+		fmt.Println("subscriebstreamseirror", errorMessage, "ok", statusMessage)
+		onError()
+	}
+
+	onInternalError := func(err error) {
+		fmt.Println(err)
+		onError()
+	}
+
+	parameters := url.Values{}
+	twitchAPI.JSONAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
+		onSuccessfulRequest, onHTTPError, onInternalError)
 }
