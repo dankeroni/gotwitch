@@ -1,8 +1,9 @@
 package gotwitch
 
 import (
-	"github.com/dankeroni/jsonapi"
 	"net/url"
+
+	"github.com/dankeroni/jsonapi"
 )
 
 type errorResponse struct {
@@ -20,6 +21,20 @@ type TwitchAPI struct {
 
 // New instantiates a new TwitchAPI object
 func New(clientID string) *TwitchAPI {
+	return &TwitchAPI{
+		JSONAPI: jsonapi.JSONAPI{
+			BaseURL: "https://api.twitch.tv/helix",
+			Headers: map[string]string{
+				"Client-ID":    clientID,
+				"Accept":       "application/json",
+				"Content-Type": "application/json",
+			},
+		},
+	}
+}
+
+// NewV3 instantiates a new TwitchAPI object
+func NewV3(clientID string) *TwitchAPI {
 	return &TwitchAPI{
 		JSONAPI: jsonapi.JSONAPI{
 			BaseURL: "https://api.twitch.tv/kraken",

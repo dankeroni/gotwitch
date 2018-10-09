@@ -7,31 +7,29 @@ import (
 	"github.com/dankeroni/jsonapi"
 )
 
+type streamsListChannel struct {
+	Data       []Stream `json:"data"`
+	Pagination struct {
+		Cursor string `json:"cursor"`
+	} `json:"pagination"`
+}
+
 // Stream json to struct
 type Stream struct {
-	ID          int64     `json:"_id"`
-	Game        string    `json:"game"`
-	Viewers     int       `json:"viewers"`
-	CreatedAt   time.Time `json:"created_at"`
-	VideoHeight int       `json:"video_height"`
-	AverageFps  float64   `json:"average_fps"`
-	Delay       int       `json:"delay"`
-	IsPlaylist  bool      `json:"is_playlist"`
-	Preview     struct {
-		Small    string `json:"small"`
-		Medium   string `json:"medium"`
-		Large    string `json:"large"`
-		Template string `json:"template"`
-	} `json:"preview"`
-	Channel Channel `json:"channel"`
+	ID           string    `json:"id"`
+	UserID       string    `json:"user_id"`
+	GameID       string    `json:"game_id"`
+	CommunityIds []string  `json:"community_ids"`
+	Type         string    `json:"type"`
+	Title        string    `json:"title"`
+	ViewerCount  int       `json:"viewer_count"`
+	StartedAt    time.Time `json:"started_at"`
+	Language     string    `json:"language"`
+	ThumbnailURL string    `json:"thumbnail_url"`
 }
 
 type streamsChannel struct {
 	Stream Stream `json:"stream"`
-}
-
-type streamsListChannel struct {
-	Streams []Stream `json:"streams"`
 }
 
 // GetStream request for GET https://api.twitch.tv/kraken/streams/:channel
@@ -47,14 +45,13 @@ func (twitchAPI *TwitchAPI) GetStream(channelName string, onSuccess func(Stream)
 
 // GetStreams request for GET https://api.twitch.tv/kraken/streams?channel=:channelList
 // channelList should be a comma-separated list of streams
-func (twitchAPI *TwitchAPI) GetStreams(channelList string, onSuccess func([]Stream),
+func (twitchAPI *TwitchAPI) GetStreams(onSuccess func([]Stream),
 	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
 	var streamsListChannel streamsListChannel
 	onSuccessfulRequest := func() {
-		onSuccess(streamsListChannel.Streams)
+		onSuccess(streamsListChannel.Data)
 	}
 	parameters := make(url.Values)
-	parameters.Add("channel", channelList)
 	twitchAPI.Get("/streams", parameters, &streamsListChannel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
