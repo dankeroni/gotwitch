@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/dankeroni/jsonapi"
+	"github.com/pajlada/jsonapi"
 )
 
 type streamsListChannel struct {

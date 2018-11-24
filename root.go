@@ -3,7 +3,7 @@ package gotwitch
 import (
 	"time"
 
-	"github.com/dankeroni/jsonapi"
+	"github.com/pajlada/jsonapi"
 )
 
 // Self json to struct

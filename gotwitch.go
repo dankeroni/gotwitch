@@ -3,7 +3,7 @@ package gotwitch
 import (
 	"net/url"
 
-	"github.com/dankeroni/jsonapi"
+	"github.com/pajlada/jsonapi"
 )
 
 type errorResponse struct {
@@ -12,11 +12,18 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
+type Credentials struct {
+	ClientID       string
+	ClientSecret   string
+	AppAccessToken string
+}
+
 // TwitchAPI struct
 type TwitchAPI struct {
-	JSONAPI      jsonapi.JSONAPI
-	ClientID     string
-	ClientSecret string
+	JSONAPI   jsonapi.JSONAPI
+	IDJSONAPI jsonapi.JSONAPI
+
+	Credentials *Credentials
 }
 
 // New instantiates a new TwitchAPI object
@@ -29,6 +36,18 @@ func New(clientID string) *TwitchAPI {
 				"Accept":       "application/json",
 				"Content-Type": "application/json",
 			},
+		},
+		IDJSONAPI: jsonapi.JSONAPI{
+			BaseURL: "https://id.twitch.tv",
+			Headers: map[string]string{
+				"Client-ID":    clientID,
+				"Accept":       "application/json",
+				"Content-Type": "application/json",
+			},
+		},
+
+		Credentials: &Credentials{
+			ClientID: clientID,
 		},
 	}
 }
@@ -43,54 +62,29 @@ func NewV3(clientID string) *TwitchAPI {
 				"Accept":    "application/vnd.twitchtv.v3+json",
 			},
 		},
+		IDJSONAPI: jsonapi.JSONAPI{
+			BaseURL: "https://id.twitch.tv/",
+			Headers: map[string]string{
+				"Client-ID":    clientID,
+				"Accept":       "application/json",
+				"Content-Type": "application/json",
+			},
+		},
 	}
-}
-
-// AuthenticatedGet request
-func (twitchAPI *TwitchAPI) AuthenticatedGet(url string, parameters url.Values, oauthToken string,
-	responseBody interface{}, onSuccess jsonapi.SuccessCallback, onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
-	parameters = authenticationParameters(oauthToken, parameters)
-	twitchAPI.Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError)
-}
-
-// AuthenticatedPut request
-func (twitchAPI *TwitchAPI) AuthenticatedPut(url string, parameters url.Values, oauthToken string,
-	requestBody interface{}, responseBody interface{}, onSuccess jsonapi.SuccessCallback,
-	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
-	parameters = authenticationParameters(oauthToken, parameters)
-	twitchAPI.JSONAPI.Put(url, parameters, requestBody, responseBody,
-		onSuccess, onHTTPError, onInternalError)
-}
-
-// AuthenticatedPost request
-func (twitchAPI *TwitchAPI) AuthenticatedPost(url string, parameters url.Values, oauthToken string,
-	requestBody interface{}, responseBody interface{}, onSuccess jsonapi.SuccessCallback,
-	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
-	parameters = authenticationParameters(oauthToken, parameters)
-	twitchAPI.JSONAPI.Post(url, parameters, requestBody, responseBody,
-		onSuccess, onHTTPError, onInternalError)
-}
-
-// AuthenticatedDelete request
-func (twitchAPI *TwitchAPI) AuthenticatedDelete(url string, parameters url.Values, oauthToken string,
-	responseBody interface{}, onSuccess jsonapi.SuccessCallback, onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
-	parameters = authenticationParameters(oauthToken, parameters)
-	twitchAPI.JSONAPI.Delete(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // Get request
 func (twitchAPI *TwitchAPI) Get(url string, parameters url.Values, responseBody interface{},
 	onSuccess jsonapi.SuccessCallback, onHTTPError jsonapi.HTTPErrorCallback,
 	onInternalError jsonapi.InternalErrorCallback) {
-	twitchAPI.JSONAPI.Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError)
+	twitchAPI.JSONAPI.Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError, nil)
 }
 
-func authenticationParameters(oauthToken string, parameters url.Values) url.Values {
-	if parameters == nil {
-		parameters = url.Values{}
-	}
-	parameters.Add("oauth_token", oauthToken)
-	return parameters
+// Post request
+func (twitchAPI *TwitchAPI) Post(url string, parameters url.Values, requestBody interface{}, responseBody interface{},
+	onSuccess jsonapi.SuccessCallback, onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) {
+	twitchAPI.JSONAPI.Post(url, parameters,
+		requestBody, responseBody,
+		onSuccess, onHTTPError, onInternalError, nil)
 }

@@ -3,7 +3,7 @@ package gotwitch
 import (
 	"net/url"
 
-	"github.com/dankeroni/jsonapi"
+	"github.com/pajlada/jsonapi"
 )
 
 // User json to struct

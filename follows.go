@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/dankeroni/jsonapi"
+	"github.com/pajlada/jsonapi"
 )
 
 // Follow json to struct
@@ -100,7 +100,7 @@ func (twitchAPI *TwitchAPI) SubscribeFollows(userID, callbackURL string, onSucce
 	}
 
 	parameters := url.Values{}
-	twitchAPI.JSONAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
+	twitchAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
@@ -128,6 +128,6 @@ func (twitchAPI *TwitchAPI) SubscribeStreams(userID, callbackURL string, onSucce
 	}
 
 	parameters := url.Values{}
-	twitchAPI.JSONAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
+	twitchAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }

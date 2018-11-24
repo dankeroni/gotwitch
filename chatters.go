@@ -1,6 +1,6 @@
 package gotwitch
 
-import "github.com/dankeroni/jsonapi"
+import "github.com/pajlada/jsonapi"
 
 // Chatters json to struct
 type Chatters struct {
@@ -29,5 +29,5 @@ func GetChatters(channelName string, onSuccess func(Chatters), onHTTPError jsona
 		BaseURL: "https://tmi.twitch.tv",
 	}
 
-	tmiAPI.Get("/group/user/"+channelName+"/chatters", nil, &chattersResponse, onSuccessfulRequest, onHTTPError, onInternalError)
+	tmiAPI.Get("/group/user/"+channelName+"/chatters", nil, &chattersResponse, onSuccessfulRequest, onHTTPError, onInternalError, nil)
 }

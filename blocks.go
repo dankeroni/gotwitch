@@ -1,9 +1,10 @@
 package gotwitch
 
 import (
-	"github.com/dankeroni/jsonapi"
 	"net/url"
 	"time"
+
+	"github.com/pajlada/jsonapi"
 )
 
 // Block json to struct
