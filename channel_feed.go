@@ -80,7 +80,7 @@ func (twitchAPI *TwitchAPI) GetPost(postID, channelName string, onSuccess func(P
 	onSuccessfulRequest := func() {
 		onSuccess(post)
 	}
-	twitchAPI.Get("/feed/"+channelName+"/posts/"+postID, nil, &post, onSuccessfulRequest,
+	twitchAPI.unauthenticatedAPI.Get("/feed/"+channelName+"/posts/"+postID, nil, &post, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 
@@ -127,7 +127,7 @@ func (twitchAPI *TwitchAPI) GetPosts(channelName string, parameters url.Values,
 	onSuccessfulRequest := func() {
 		onSuccess(posts)
 	}
-	twitchAPI.Get("/feed/"+channelName+"/posts", parameters, &posts, onSuccessfulRequest,
+	twitchAPI.unauthenticatedAPI.Get("/feed/"+channelName+"/posts", parameters, &posts, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 

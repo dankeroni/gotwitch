@@ -29,5 +29,5 @@ func GetChatters(channelName string, onSuccess func(Chatters), onHTTPError jsona
 		BaseURL: "https://tmi.twitch.tv",
 	}
 
-	tmiAPI.Get("/group/user/"+channelName+"/chatters", nil, &chattersResponse, onSuccessfulRequest, onHTTPError, onInternalError, nil)
+	tmiAPI.Get("/group/user/"+channelName+"/chatters", nil, &chattersResponse, onSuccessfulRequest, onHTTPError, onInternalError)
 }

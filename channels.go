@@ -49,7 +49,7 @@ func (twitchAPI *TwitchAPI) GetChannel(channelName string, onSuccess func(Channe
 	onSuccessfulRequest := func() {
 		onSuccess(channel)
 	}
-	twitchAPI.Get("/channels/"+channelName, nil, &channel, onSuccessfulRequest,
+	twitchAPI.get("/channels/"+channelName, nil, &channel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 

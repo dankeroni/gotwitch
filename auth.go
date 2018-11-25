@@ -29,7 +29,7 @@ func (twitchAPI *TwitchAPI) GetAppAccessToken(onSuccess func(AppAccessTokenRespo
 	parameters.Add("client_secret", twitchAPI.Credentials.ClientSecret)
 	parameters.Add("grant_type", "client_credentials")
 
-	twitchAPI.IDJSONAPI.Post("/oauth2/token", parameters, nil, &response, onSuccessfulRequest, onHTTPError, onInternalError, nil)
+	twitchAPI.idAPI.Post("/oauth2/token", parameters, nil, &response, onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
 func (twitchAPI *TwitchAPI) GetAppAccessTokenSimple() (response *AppAccessTokenResponse, err error) {

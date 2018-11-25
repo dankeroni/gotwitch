@@ -38,7 +38,7 @@ func (twitchAPI *TwitchAPI) GetWebhookSubscriptions(after, first string,
 		parameters.Add("first", first)
 	}
 
-	twitchAPI.Get("/webhooks/subscriptions", parameters, &response,
+	twitchAPI.authenticatedAPI.Get("/webhooks/subscriptions", parameters, &response,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
@@ -73,7 +73,7 @@ type webhookHubRequest struct {
 
 // https://dev.twitch.tv/docs/api/webhooks-reference/#subscribe-tounsubscribe-from-events
 func (twitchAPI *TwitchAPI) WebhookSubscribe(callbackURL string, topic WebhookTopic, twitchUserID string, lease int, secret string,
-	onSuccess func(FollowedStreams), onHTTPError jsonapi.HTTPErrorCallback,
+	onSuccess func(WebhookSubscriptionsResponse), onHTTPError jsonapi.HTTPErrorCallback,
 	onInternalError jsonapi.InternalErrorCallback) {
 
 	request := webhookHubRequest{
@@ -86,11 +86,22 @@ func (twitchAPI *TwitchAPI) WebhookSubscribe(callbackURL string, topic WebhookTo
 
 	var response WebhookSubscriptionsResponse
 	onSuccessfulRequest := func() {
-
+		onSuccess(response)
 	}
 
-	parameters := make(url.Values)
-
-	twitchAPI.Post("/webhooks/hub", parameters, &request, &response,
+	twitchAPI.post("/webhooks/hub", nil, &request, &response,
 		onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+func (twitchAPI *TwitchAPI) WebhookSubscribeSimple(callbackURL string, topic WebhookTopic, twitchUserID string, lease int, secret string) (response *WebhookSubscriptionsResponse, err error) {
+	var errorChannel = make(chan error)
+
+	onSuccessfulRequest := func(r WebhookSubscriptionsResponse) {
+		response = &r
+		errorChannel <- nil
+	}
+
+	go twitchAPI.WebhookSubscribe(callbackURL, topic, twitchUserID, lease, secret, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	err = <-errorChannel
+	return
 }

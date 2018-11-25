@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/pajlada/jsonapi"
@@ -43,8 +44,10 @@ func (twitchAPI *TwitchAPI) GetFollowedStreams(oauthToken string, parameters url
 }
 
 // GetUsers request for GET https://api.twitch.tv/helix/users
-func (twitchAPI *TwitchAPI) GetUsers(userIDs []string, onSuccess func([]User), onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+func (twitchAPI *TwitchAPI) GetUsers(userIDs []string,
+	onSuccess func([]User),
+	onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 	var usersListChannel usersListChannel
 	onSuccessfulRequest := func() {
 		onSuccess(usersListChannel.Data)
@@ -53,13 +56,31 @@ func (twitchAPI *TwitchAPI) GetUsers(userIDs []string, onSuccess func([]User), o
 	for _, userID := range userIDs {
 		parameters.Add("id", userID)
 	}
-	twitchAPI.Get("/users", parameters, &usersListChannel,
+	return twitchAPI.authenticatedAPI.Get("/users", parameters, &usersListChannel,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
+// GetUsersSimple request for GET https://api.twitch.tv/helix/users
+func (twitchAPI *TwitchAPI) GetUsersSimple(userIDs []string) (data []User, response *http.Response, err error) {
+	var errorChannel = make(chan error)
+	onSuccessfulRequest := func(users []User) {
+		data = users
+		errorChannel <- nil
+	}
+	go func() {
+		response, err = twitchAPI.GetUsers(userIDs, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
+
+	err = <-errorChannel
+
+	return
+}
+
 // GetUsersByLogin request for GET https://api.twitch.tv/helix/users
-func (twitchAPI *TwitchAPI) GetUsersByLogin(userLogins []string, onSuccess func([]User), onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+func (twitchAPI *TwitchAPI) GetUsersByLogin(userLogins []string,
+	onSuccess func([]User),
+	onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 	var usersListChannel usersListChannel
 	onSuccessfulRequest := func() {
 		onSuccess(usersListChannel.Data)
@@ -68,6 +89,22 @@ func (twitchAPI *TwitchAPI) GetUsersByLogin(userLogins []string, onSuccess func(
 	for _, userLogin := range userLogins {
 		parameters.Add("login", userLogin)
 	}
-	twitchAPI.Get("/users", parameters, &usersListChannel,
+	return twitchAPI.get("/users", parameters, &usersListChannel,
 		onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+// GetUsersByLoginSimple request for GET https://api.twitch.tv/helix/users
+func (twitchAPI *TwitchAPI) GetUsersByLoginSimple(userLogins []string) (data []User, response *http.Response, err error) {
+	var errorChannel = make(chan error)
+	onSuccessfulRequest := func(users []User) {
+		data = users
+		errorChannel <- nil
+	}
+	go func() {
+		response, err = twitchAPI.GetUsersByLogin(userLogins, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
+
+	err = <-errorChannel
+
+	return
 }

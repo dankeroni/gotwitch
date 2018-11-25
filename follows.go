@@ -28,7 +28,7 @@ func (twitchAPI *TwitchAPI) GetFollows(user string, parameters url.Values, onSuc
 	onSuccessfulRequest := func() {
 		onSuccess(follows)
 	}
-	twitchAPI.Get("/users/"+user+"/follows/channels", parameters, &follows,
+	twitchAPI.get("/users/"+user+"/follows/channels", parameters, &follows,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
@@ -39,7 +39,7 @@ func (twitchAPI *TwitchAPI) GetFollow(user, target string, onSuccess func(Follow
 	onSuccessfulRequest := func() {
 		onSuccess(follow)
 	}
-	twitchAPI.Get("/users/"+user+"/follows/channels/"+target, nil, &follow, onSuccessfulRequest,
+	twitchAPI.get("/users/"+user+"/follows/channels/"+target, nil, &follow, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 
@@ -100,7 +100,7 @@ func (twitchAPI *TwitchAPI) SubscribeFollows(userID, callbackURL string, onSucce
 	}
 
 	parameters := url.Values{}
-	twitchAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
+	twitchAPI.post("/webhooks/hub", parameters, requestBody, &follows,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
@@ -128,6 +128,6 @@ func (twitchAPI *TwitchAPI) SubscribeStreams(userID, callbackURL string, onSucce
 	}
 
 	parameters := url.Values{}
-	twitchAPI.Post("/webhooks/hub", parameters, requestBody, &follows,
+	twitchAPI.post("/webhooks/hub", parameters, requestBody, &follows,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }

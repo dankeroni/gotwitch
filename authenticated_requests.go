@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/pajlada/jsonapi"
@@ -13,10 +14,9 @@ func (twitchAPI *TwitchAPI) IDAuthenticatedGet(url string,
 	responseBody interface{},
 	onSuccess jsonapi.SuccessCallback,
 	onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	extraHeaders := authenticationHeaders(oauthToken)
-	twitchAPI.IDJSONAPI.Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError, extraHeaders)
+	return twitchAPI.idAPI.R().SetHeader("Authorization", "OAuth "+oauthToken).Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // AuthenticatedGet request
@@ -26,10 +26,9 @@ func (twitchAPI *TwitchAPI) AuthenticatedGet(url string,
 	responseBody interface{},
 	onSuccess jsonapi.SuccessCallback,
 	onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	extraHeaders := authenticationHeaders(oauthToken)
-	twitchAPI.JSONAPI.Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError, extraHeaders)
+	return twitchAPI.authUser(oauthToken).Get(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // AuthenticatedPut request
@@ -40,11 +39,9 @@ func (twitchAPI *TwitchAPI) AuthenticatedPut(url string,
 	responseBody interface{},
 	onSuccess jsonapi.SuccessCallback,
 	onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	extraHeaders := authenticationHeaders(oauthToken)
-	twitchAPI.JSONAPI.Put(url, parameters, requestBody, responseBody,
-		onSuccess, onHTTPError, onInternalError, extraHeaders)
+	return twitchAPI.authUser(oauthToken).Put(url, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // AuthenticatedPost request
@@ -55,18 +52,19 @@ func (twitchAPI *TwitchAPI) AuthenticatedPost(url string,
 	responseBody interface{},
 	onSuccess jsonapi.SuccessCallback,
 	onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	extraHeaders := authenticationHeaders(oauthToken)
-	twitchAPI.JSONAPI.Post(url, parameters, requestBody, responseBody,
-		onSuccess, onHTTPError, onInternalError, extraHeaders)
+	return twitchAPI.authUser(oauthToken).Post(url, parameters, requestBody, responseBody, onSuccess, onHTTPError, onInternalError)
 }
 
 // AuthenticatedDelete request
-func (twitchAPI *TwitchAPI) AuthenticatedDelete(url string, parameters url.Values, oauthToken string,
-	responseBody interface{}, onSuccess jsonapi.SuccessCallback, onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+func (twitchAPI *TwitchAPI) AuthenticatedDelete(url string,
+	parameters url.Values,
+	oauthToken string,
+	responseBody interface{},
+	onSuccess jsonapi.SuccessCallback,
+	onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	extraHeaders := authenticationHeaders(oauthToken)
-	twitchAPI.JSONAPI.Delete(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError, extraHeaders)
+	return twitchAPI.authUser(oauthToken).Delete(url, parameters, responseBody, onSuccess, onHTTPError, onInternalError)
 }

@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"net/http"
 	"net/url"
 	"time"
 
@@ -18,6 +19,7 @@ type streamsListChannel struct {
 type Stream struct {
 	ID           string    `json:"id"`
 	UserID       string    `json:"user_id"`
+	UserName     string    `json:"user_name"`
 	GameID       string    `json:"game_id"`
 	CommunityIds []string  `json:"community_ids"`
 	Type         string    `json:"type"`
@@ -39,19 +41,54 @@ func (twitchAPI *TwitchAPI) GetStream(channelName string, onSuccess func(Stream)
 	onSuccessfulRequest := func() {
 		onSuccess(streamsChannel.Stream)
 	}
-	twitchAPI.Get("/streams/"+channelName, nil, &streamsChannel, onSuccessfulRequest,
+	twitchAPI.get("/streams/"+channelName, nil, &streamsChannel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
 }
 
-// GetStreams request for GET https://api.twitch.tv/kraken/streams?channel=:channelList
-// channelList should be a comma-separated list of streams
-func (twitchAPI *TwitchAPI) GetStreams(onSuccess func([]Stream),
-	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
+// GetStreams request for GET https://api.twitch.tv/helix/streams
+// https://dev.twitch.tv/docs/api/reference/#get-streams
+func (twitchAPI *TwitchAPI) GetStreams(userIDs []string,
+	userLogins []string,
+	onSuccess func([]Stream),
+	onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 	var streamsListChannel streamsListChannel
 	onSuccessfulRequest := func() {
 		onSuccess(streamsListChannel.Data)
 	}
 	parameters := make(url.Values)
-	twitchAPI.Get("/streams", parameters, &streamsListChannel, onSuccessfulRequest,
+	n := 100
+	for _, userID := range userIDs {
+		if n == 0 {
+			break
+		}
+		parameters.Add("user_id", userID)
+		n++
+	}
+
+	for _, userLogin := range userLogins {
+		if n == 0 {
+			break
+		}
+		parameters.Add("user_login", userLogin)
+		n++
+	}
+
+	return twitchAPI.get("/streams", parameters, &streamsListChannel, onSuccessfulRequest,
 		onHTTPError, onInternalError)
+}
+
+func (twitchAPI *TwitchAPI) GetStreamsSimple(userIDs []string, userLogins []string) (data []Stream, response *http.Response, err error) {
+	var errorChannel = make(chan error)
+
+	onSuccess := func(r []Stream) {
+		data = r
+		errorChannel <- nil
+	}
+
+	go func() {
+		response, err = twitchAPI.GetStreams(userIDs, userLogins, onSuccess, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
+	err = <-errorChannel
+	return
 }
