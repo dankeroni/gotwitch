@@ -2,7 +2,6 @@ package gotwitch
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -91,10 +90,6 @@ func (twitchAPI *TwitchAPI) WebhookSubscribe(callbackURL string, topic WebhookTo
 		Lease:    int(lease.Seconds()),
 		Secret:   secret,
 	}
-
-	xd, _ := json.Marshal(&request)
-
-	fmt.Println("AAAAAAAAAA", string(xd))
 
 	var d WebhookSubscribeResponse
 	onSuccessfulRequest := func() {
