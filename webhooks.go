@@ -1,32 +1,42 @@
 package gotwitch
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/pajlada/jsonapi"
 )
 
-type WebhookSubscriptionsResponse struct {
-	Total int `json:"total"`
-	Data  []struct {
-		Topic     string    `json:"topic"`
-		Callback  string    `json:"callback"`
-		ExpiresAt time.Time `json:"expires_at"`
-	} `json:"data"`
-	Pagination struct {
-		Cursor string `json:"cursor"`
-	} `json:"pagination"`
+type Pagination struct {
+	Cursor string `json:"cursor"`
 }
+
+type WebhookSubscription struct {
+	Topic     string    `json:"topic"`
+	Callback  string    `json:"callback"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+type WebhookSubscriptionsResponse struct {
+	Total      int                   `json:"total"`
+	Data       []WebhookSubscription `json:"data"`
+	Pagination Pagination            `json:"pagination"`
+}
+
+type WebhookSubscribeResponse json.RawMessage
 
 // https://dev.twitch.tv/docs/api/reference/#get-webhook-subscriptions
 func (twitchAPI *TwitchAPI) GetWebhookSubscriptions(after, first string,
-	onSuccess func(WebhookSubscriptionsResponse), onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onSuccess func(WebhookSubscriptionsResponse),
+	onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	var response WebhookSubscriptionsResponse
+	var data WebhookSubscriptionsResponse
 	onSuccessfulRequest := func() {
-		onSuccess(response)
+		onSuccess(data)
 	}
 
 	parameters := make(url.Values)
@@ -34,33 +44,31 @@ func (twitchAPI *TwitchAPI) GetWebhookSubscriptions(after, first string,
 		parameters.Add("after", after)
 	}
 
+	firstValue := "20"
 	if first != "" {
-		parameters.Add("first", first)
+		firstValue = first
 	}
+	parameters.Add("first", firstValue)
 
-	twitchAPI.authenticatedAPI.Get("/webhooks/subscriptions", parameters, &response,
+	return twitchAPI.authenticatedAPI.Get("/webhooks/subscriptions", parameters, &data,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
-type WebhookTopic int
-
-const (
-	WebhookTopicFollowers = iota
-	WebhookTopicStreams
-	WebhookTopicUserChanged
-)
-
-func (t WebhookTopic) URL(twitchUserID string) string {
-	switch t {
-	case WebhookTopicFollowers:
-		return "https://api.twitch.tv/helix/users/follows?first=1&to_id=" + twitchUserID
-	case WebhookTopicStreams:
-		return "https://api.twitch.tv/helix/streams?user_id=" + twitchUserID
-	case WebhookTopicUserChanged:
-		return "https://api.twitch.tv/helix/users?id=" + twitchUserID
+// GetWebhookSubscriptionsSimple simplifies GetWebhookSubscriptions
+// https://dev.twitch.tv/docs/api/reference/#get-webhook-subscriptions
+func (twitchAPI *TwitchAPI) GetWebhookSubscriptionsSimple(after, first string) (data *WebhookSubscriptionsResponse, response *http.Response, err error) {
+	var errorChannel = make(chan error)
+	onSuccessfulRequest := func(d WebhookSubscriptionsResponse) {
+		data = &d
+		errorChannel <- nil
 	}
+	go func() {
+		response, err = twitchAPI.GetWebhookSubscriptions(after, first, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
 
-	return ""
+	err = <-errorChannel
+
+	return
 }
 
 type webhookHubRequest struct {
@@ -72,36 +80,42 @@ type webhookHubRequest struct {
 }
 
 // https://dev.twitch.tv/docs/api/webhooks-reference/#subscribe-tounsubscribe-from-events
-func (twitchAPI *TwitchAPI) WebhookSubscribe(callbackURL string, topic WebhookTopic, twitchUserID string, lease int, secret string,
-	onSuccess func(WebhookSubscriptionsResponse), onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+func (twitchAPI *TwitchAPI) WebhookSubscribe(callbackURL string, topic WebhookTopic, twitchUserID string, lease time.Duration, secret string,
+	onSuccess func(WebhookSubscribeResponse), onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
 	request := webhookHubRequest{
 		Mode:     "subscribe",
 		Topic:    topic.URL(twitchUserID),
 		Callback: callbackURL,
-		Lease:    lease,
+		Lease:    int(lease.Seconds()),
 		Secret:   secret,
 	}
 
-	var response WebhookSubscriptionsResponse
+	xd, _ := json.Marshal(&request)
+
+	fmt.Println("AAAAAAAAAA", string(xd))
+
+	var d WebhookSubscribeResponse
 	onSuccessfulRequest := func() {
-		onSuccess(response)
+		onSuccess(d)
 	}
 
-	twitchAPI.post("/webhooks/hub", nil, &request, &response,
+	return twitchAPI.authenticatedAPI.Post("/webhooks/hub", nil, &request, &d,
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
-func (twitchAPI *TwitchAPI) WebhookSubscribeSimple(callbackURL string, topic WebhookTopic, twitchUserID string, lease int, secret string) (response *WebhookSubscriptionsResponse, err error) {
+func (twitchAPI *TwitchAPI) WebhookSubscribeSimple(callbackURL string, topic WebhookTopic, twitchUserID string, lease time.Duration, secret string) (data *WebhookSubscribeResponse, response *http.Response, err error) {
 	var errorChannel = make(chan error)
 
-	onSuccessfulRequest := func(r WebhookSubscriptionsResponse) {
-		response = &r
+	onSuccessfulRequest := func(d WebhookSubscribeResponse) {
+		data = &d
 		errorChannel <- nil
 	}
 
-	go twitchAPI.WebhookSubscribe(callbackURL, topic, twitchUserID, lease, secret, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	go func() {
+		response, err = twitchAPI.WebhookSubscribe(callbackURL, topic, twitchUserID, lease, secret, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
 	err = <-errorChannel
 	return
 }
