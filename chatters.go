@@ -1,6 +1,10 @@
 package gotwitch
 
-import "github.com/pajlada/jsonapi"
+import (
+	"net/http"
+
+	"github.com/pajlada/jsonapi"
+)
 
 // Chatters json to struct
 type Chatters struct {
@@ -19,7 +23,7 @@ type ChattersResponse struct {
 }
 
 func GetChatters(channelName string, onSuccess func(Chatters), onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 	var chattersResponse ChattersResponse
 	onSuccessfulRequest := func() {
 		onSuccess(chattersResponse.Chatters)
@@ -29,5 +33,20 @@ func GetChatters(channelName string, onSuccess func(Chatters), onHTTPError jsona
 		BaseURL: "https://tmi.twitch.tv",
 	}
 
-	tmiAPI.Get("/group/user/"+channelName+"/chatters", nil, &chattersResponse, onSuccessfulRequest, onHTTPError, onInternalError)
+	return tmiAPI.Get("/group/user/"+channelName+"/chatters", nil, &chattersResponse, onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+func GetChattersSimple(channelName string) (data *Chatters, response *http.Response, err error) {
+	var errorChannel = make(chan error)
+	onSuccessfulRequest := func(d Chatters) {
+		data = &d
+		errorChannel <- nil
+	}
+	go func() {
+		response, err = GetChatters(channelName, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
+
+	err = <-errorChannel
+
+	return
 }
