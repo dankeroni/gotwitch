@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/pajlada/jsonapi"
@@ -34,11 +35,27 @@ type Self struct {
 
 // GetSelf request for GET https://api.twitch.tv/kraken/
 func (twitchAPI *TwitchAPI) GetSelf(oauthToken string, onSuccess func(Self),
-	onHTTPError jsonapi.HTTPErrorCallback, onInternalError jsonapi.InternalErrorCallback) {
+	onHTTPError jsonapi.HTTPErrorCallback,
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 	var self Self
 	onSuccessfulRequest := func() {
 		onSuccess(self)
 	}
-	twitchAPI.AuthenticatedGet("/", nil, oauthToken, &self,
+	return twitchAPI.AuthenticatedGet("/", nil, oauthToken, &self,
 		onSuccessfulRequest, onHTTPError, onInternalError)
+}
+
+func (twitchAPI *TwitchAPI) GetSelfSimple(oauthToken string) (data *Self, response *http.Response, err error) {
+	var errorChannel = make(chan error)
+	onSuccessfulRequest := func(d Self) {
+		data = &d
+		errorChannel <- nil
+	}
+	go func() {
+		response, err = twitchAPI.GetSelf(oauthToken, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
+
+	err = <-errorChannel
+
+	return
 }
