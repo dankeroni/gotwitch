@@ -1,6 +1,7 @@
 package gotwitch
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/pajlada/jsonapi"
@@ -55,25 +56,27 @@ type ValidateResponse struct {
 
 // ValidateOAuthToken will validate an oauth token with your client id
 func (twitchAPI *TwitchAPI) ValidateOAuthToken(oauthToken string, onSuccess func(ValidateResponse), onHTTPError jsonapi.HTTPErrorCallback,
-	onInternalError jsonapi.InternalErrorCallback) {
+	onInternalError jsonapi.InternalErrorCallback) (response *http.Response, err error) {
 
-	var response ValidateResponse
+	var data ValidateResponse
 	onSuccessfulRequest := func() {
-		onSuccess(response)
+		onSuccess(data)
 	}
 
-	twitchAPI.IDAuthenticatedGet("/oauth2/validate", nil, oauthToken, &response, onSuccessfulRequest, onHTTPError, onInternalError)
+	return twitchAPI.IDAuthenticatedGet("/oauth2/validate", nil, oauthToken, &data, onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
-func (twitchAPI *TwitchAPI) ValidateOAuthTokenSimple(oauthToken string) (response *ValidateResponse, err error) {
+func (twitchAPI *TwitchAPI) ValidateOAuthTokenSimple(oauthToken string) (data *ValidateResponse, response *http.Response, err error) {
 	var errorChannel = make(chan error)
 
 	onSuccessfulRequest := func(r ValidateResponse) {
-		response = &r
+		data = &r
 		errorChannel <- nil
 	}
 
-	go twitchAPI.ValidateOAuthToken(oauthToken, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	go func() {
+		response, err = twitchAPI.ValidateOAuthToken(oauthToken, onSuccessfulRequest, simpleOnHTTPError(errorChannel), simpleOnInternalError(errorChannel))
+	}()
 
 	err = <-errorChannel
 
