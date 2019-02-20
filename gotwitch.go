@@ -75,6 +75,44 @@ func New(clientID string) *TwitchAPI {
 	return api
 }
 
+// NewV5 instantiates a new TwitchAPI object
+func NewV5(clientID string) *TwitchAPI {
+	api := &TwitchAPI{
+		unauthenticatedAPI: jsonapi.JSONAPI{
+			BaseURL: "https://api.twitch.tv/kraken",
+			Headers: map[string]string{
+				"Client-ID": clientID,
+				"Accept":    "application/vnd.twitchtv.v5+json",
+			},
+		},
+		// authenticated api is authenticated with the server app token
+		// for requests that need to be authenticated by a user, user unauthenticatedAPI and set the header manually
+		authenticatedAPI: jsonapi.JSONAPI{
+			BaseURL: "https://api.twitch.tv/kraken",
+			Headers: map[string]string{
+				"Client-ID": clientID,
+				"Accept":    "application/vnd.twitchtv.v5+json",
+			},
+		},
+		idAPI: jsonapi.JSONAPI{
+			BaseURL: "https://id.twitch.tv",
+			Headers: map[string]string{
+				"Client-ID":    clientID,
+				"Accept":       "application/json",
+				"Content-Type": "application/json",
+			},
+		},
+
+		Credentials: &Credentials{
+			ClientID: clientID,
+		},
+	}
+
+	api.authenticatedAPI.Use(api.Credentials.middleware)
+
+	return api
+}
+
 // Get request
 func (twitchAPI *TwitchAPI) get(url string,
 	parameters url.Values,
