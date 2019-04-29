@@ -104,7 +104,7 @@ func (twitchAPI *TwitchAPI) SubscribeFollows(userID, callbackURL string, onSucce
 		onSuccessfulRequest, onHTTPError, onInternalError)
 }
 
-// SubscribeStreamUpDown xd
+// SubscribeStreams xd
 func (twitchAPI *TwitchAPI) SubscribeStreams(userID, callbackURL string, onSuccess func(), onError func()) {
 	var follows Follows
 	onSuccessfulRequest := func() {
