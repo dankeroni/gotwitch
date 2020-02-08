@@ -5,6 +5,12 @@ import (
 	"fmt"
 )
 
+var (
+	// ErrMissingGameOrTitle is returned from V5's UpdateChannel in case neither a game or title has been passed to the parameters
+	ErrMissingGameOrTitle = errors.New("missing required game or title parameters")
+)
+
+// V5Channel is the struct returned from the V5 channel get API
 type V5Channel struct {
 	ID                           string      `json:"_id"`
 	BroadcasterLanguage          string      `json:"broadcaster_language"`
@@ -31,61 +37,74 @@ type V5Channel struct {
 	Views                        int         `json:"views"`
 }
 
+// UpdateChannelParameters are parameters sent through to the V5 Update Channel API
 type UpdateChannelParameters struct {
 	Game  *string `json:"game,omitempty"`
 	Title *string `json:"status,omitempty"`
 }
 
+// NewUpdateChannelParameters is a helper for creating an UpdateChannelParameters struct
 func NewUpdateChannelParameters() *UpdateChannelParameters {
 	return &UpdateChannelParameters{}
 }
 
+// ResetGame resets the game
 func (p *UpdateChannelParameters) ResetGame() *UpdateChannelParameters {
 	p.Game = nil
 
 	return p
 }
 
+// SetGame sets the game
 func (p *UpdateChannelParameters) SetGame(v string) *UpdateChannelParameters {
 	p.Game = &v
 
 	return p
 }
 
+// ResetTitle resets the title
 func (p *UpdateChannelParameters) ResetTitle() *UpdateChannelParameters {
 	p.Title = nil
 
 	return p
 }
 
+// SetTitle sets the title
 func (p *UpdateChannelParameters) SetTitle(v string) *UpdateChannelParameters {
 	p.Title = &v
 
 	return p
 }
 
-func (p *UpdateChannelParameters) Valid() bool {
+// Validate validates the given parameters
+// Rule #1: Either Game or Title MUST be set
+func (p *UpdateChannelParameters) Validate() error {
 	if p.Game != nil {
-		return true
+		return nil
 	}
 
 	if p.Title != nil {
-		return true
+		return nil
 	}
 
-	return false
+	return ErrMissingGameOrTitle
 }
 
 // UpdateChannel request for GET https://api.twitch.tv/kraken/channel
-func (a *TwitchAPIV5) UpdateChannel(channelID string, parameters *UpdateChannelParameters) (*V5Channel, error) {
+func (a *TwitchAPIV5) UpdateChannel(channelID string, parameters *UpdateChannelParameters) (rResult *V5Channel, err error) {
 	if !a.Authenticated() {
-		return nil, errors.New("not authenticated")
+		err = ErrNotAuthenticated
+		return
 	}
 
-	channel := &V5Channel{}
+	result := V5Channel{}
 
-	if parameters == nil || !parameters.Valid() {
-		return nil, errors.New("Invalid update parameters")
+	if parameters == nil {
+		err = ErrMissingParameters
+		return
+	}
+	if err = parameters.Validate(); err != nil {
+		return
 	}
 
 	type tBody struct {
@@ -96,13 +115,16 @@ func (a *TwitchAPIV5) UpdateChannel(channelID string, parameters *UpdateChannelP
 
 	resp, err := a.c.R().
 		SetBody(body).
-		SetResult(&channel).
+		SetResult(&result).
 		Put("channels/" + channelID)
 
 	if resp.IsError() {
 		e := resp.Error().(*V5Error)
-		return nil, fmt.Errorf("API error code %d: %s - %s", e.Status, e.Error, e.Message)
+		err = fmt.Errorf("API error code %d: %s - %s", e.Status, e.Error, e.Message)
+		return
 	}
 
-	return channel, err
+	rResult = &result
+
+	return
 }

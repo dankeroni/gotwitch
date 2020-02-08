@@ -19,8 +19,9 @@ type HelixResponse struct {
 	Pagination interface{} `json:"pagination"`
 }
 
-func NewTwitchAPIHelix(clientID string) *TwitchAPIHelix {
+func NewTwitchAPIHelix(clientID string, id *TwitchAPIID) *TwitchAPIHelix {
 	a := &TwitchAPIHelix{
+		id: id,
 		c: resty.New().
 			SetHostURL("https://api.twitch.tv/helix").
 			SetHeader("Accept", "application/json").
@@ -35,7 +36,11 @@ func NewTwitchAPIHelix(clientID string) *TwitchAPIHelix {
 type TwitchAPIHelix struct {
 	c *resty.Client
 
+	id *TwitchAPIID
+
 	authenticated bool
+
+	appAccessToken Token
 }
 
 func (a *TwitchAPIHelix) Authenticate(oauthToken string) error {

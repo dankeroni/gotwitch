@@ -31,7 +31,5 @@ func (a *TwitchAPIID) Validate() (ValidateResponse, error) {
 		return result, fmt.Errorf("API error code %d: %s - %s", e.Status, e.Error, e.Message)
 	}
 
-	// fmt.Println(resp)
-
 	return result, err
 }

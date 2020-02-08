@@ -40,8 +40,20 @@ func (p *GetStreamsParameters) SetUserIDs(v []string) *GetStreamsParameters {
 	return p
 }
 
+func (p *GetStreamsParameters) SetUserLogins(v []string) *GetStreamsParameters {
+	p.UserLogins = v
+
+	return p
+}
+
 func (p *GetStreamsParameters) Validate() error {
 	for _, v := range p.UserIDs {
+		if v == "" {
+			return ErrCannotPassEmptyStringAsLookupValue
+		}
+	}
+
+	for _, v := range p.UserLogins {
 		if v == "" {
 			return ErrCannotPassEmptyStringAsLookupValue
 		}
@@ -68,6 +80,9 @@ func (a *TwitchAPIHelix) GetStreams(parameters *GetStreamsParameters) ([]HelixSt
 		Pagination interface{} `json:"pagination"`
 	}
 
+	if parameters == nil {
+		return nil, ErrMissingParameters
+	}
 	if err := parameters.Validate(); err != nil {
 		return nil, err
 	}

@@ -1,8 +1,6 @@
 package gotwitch
 
 import (
-	"errors"
-
 	"github.com/go-resty/resty/v2"
 )
 
@@ -21,6 +19,8 @@ type IDResponse struct {
 
 func NewTwitchAPIID(clientID string) *TwitchAPIID {
 	a := &TwitchAPIID{
+		clientID: clientID,
+
 		c: resty.New().
 			SetHostURL("https://id.twitch.tv/oauth2").
 			SetHeader("Accept", "application/json").
@@ -33,21 +33,25 @@ func NewTwitchAPIID(clientID string) *TwitchAPIID {
 }
 
 type TwitchAPIID struct {
+	clientID string
+
 	c *resty.Client
 
 	authenticated bool
+
+	clientSecret string
 }
 
-func (a *TwitchAPIID) Authenticate(oauthToken string) error {
-	if oauthToken == "" {
-		return errors.New("oauthToken may not be empty")
-	}
+func (a *TwitchAPIID) SetClientSecret(clientSecret string) {
+	a.clientSecret = clientSecret
+}
 
-	a.c.SetHeader("Authorization", "OAuth "+oauthToken)
-
-	a.authenticated = true
-
-	return nil
+func (a *TwitchAPIID) Authenticate(oauthToken string) *TwitchAPIID {
+	id := NewTwitchAPIID(a.clientID)
+	id.SetClientSecret(a.clientSecret)
+	id.c.SetHeader("Authorization", "OAuth "+oauthToken)
+	id.authenticated = true
+	return id
 }
 
 func (a *TwitchAPIID) Authenticated() bool {
